@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+	<TargetFramework>net6.0</TargetFramework>
+	<TargetFramework>net6.0-windows</TargetFramework>
+	<UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.7.0" />
+    <PackageReference Include="Selenium.WebDriver.MicrosoftDriver" Version="17.17134.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="WindowsFormsIntegration">
+      <HintPath>..\..\..\..\..\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\WindowsFormsIntegration.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
