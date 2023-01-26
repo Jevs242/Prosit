@@ -69,7 +69,7 @@ namespace SeleniumTest
             uploadButton.Click();
             Thread.Sleep(1000);
 
-            //Automatic
+            //Automatic Input
             //SendKeys.SendWait(@"C:\Users\Jose\Downloads\mini.csv" + "{ENTER}");
 
             //Check if already upload the file
