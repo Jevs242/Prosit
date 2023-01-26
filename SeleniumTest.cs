@@ -24,18 +24,27 @@ namespace SeleniumTest
             option.AddUserProfilePreference("download.prompt_for_download", false);
             option.AddUserProfilePreference("disable-popup-blocking", "true");
             driver = new EdgeDriver(service, option);
-            //Close Edge
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => driver.Close();
+            
+            
         }
 
         public void CloseDriver()
         {
-            driver.Close();
+            try
+            {
+                driver.Close();
+            }
+            catch
+            {
+
+            }
         }
 
         public void SetSpectralLibrary()
         {
-
+            OpenDriver();
+            //Close Edge
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseDriver();
             Console.WriteLine("Set Spectral Library");
 
             //URL
@@ -54,15 +63,19 @@ namespace SeleniumTest
             //Section: Upload Files 
             // Button : Upload
             var uploadButton = driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[5]/div/div[3]/div/div[2]/div[1]/div[1]/input"));
-   
+        
             // Button :Next
             IWebElement link = driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[5]/div/div[4]/div/button[2]"));
-
             uploadButton.Click();
+            Thread.Sleep(1000);
 
+            //Automatic
+            //SendKeys.SendWait(@"C:\Users\Jose\Downloads\mini.csv" + "{ENTER}");
+
+            //Check if already upload the file
             while (link.GetAttribute("disabled") != null)
             {
-
+                Thread.Sleep(3000);
             }
 
             if (link.GetAttribute("disabled") == null)
@@ -104,15 +117,17 @@ namespace SeleniumTest
                     sw.WriteLine($"{driver.Url}" + " | " + localDate);
                 }
             }
+            string url = driver.Url;
+            driver.Close();
 
-
-            Thread.Sleep(2000);
-            GetSpectralLibrary(driver.Url);
+            GetSpectralLibrary(url);
         }
 
         public void GetSpectralLibrary(string Lurl)
         {
-
+            OpenDriver();
+            //Close Edge
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseDriver();
             Console.WriteLine("Get Spectral Library");
 
             //URL
@@ -121,11 +136,11 @@ namespace SeleniumTest
 
             string url = "";
 
-            if(Lurl != "")
+            if(Lurl != "None")
             {
                 url = Lurl;
             }
-            else
+            else if(Lurl == "None")
             {
                 int counter = 0;
                 foreach (string line in File.ReadLines(@"token.txt"))
@@ -143,12 +158,15 @@ namespace SeleniumTest
                         url = line;
                 }
                 url = url.Split(" | ")[0];
-                driver.Url = url;
             }
+
+            driver.Url = url;
+
+            Thread.Sleep(1000);
             //Title
             Console.WriteLine(driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]")).Text);
-            
-            //Sucess Case
+
+            //Success Case
             var downloadButton = driver.FindElement(By.XPath("//*[@id='app']//div[2]/div[1]/div/div[4]/div/div/div[2]/div/a"));
             bool exist = false;
             try
@@ -164,6 +182,7 @@ namespace SeleniumTest
                         downloadButton.Click();
                         Console.WriteLine("Downloading in " + path);
                     }
+                    Console.Clear();
                 }
             }
             catch { }
@@ -172,25 +191,31 @@ namespace SeleniumTest
             var debugLogButton = driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]/div/div/ul/li"));
             try
             {
-                exist = true;
-                debugLogButton.Click();
-                Thread.Sleep(1000);
-                Console.WriteLine(driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]/div/div/ul/li/div[2]/div/div")).Text);
-                Console.WriteLine();
+                if (driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]")).Text.Contains("error"))
+                {
+                    exist = true;
+                    debugLogButton.Click();
+                    Thread.Sleep(1000);
+                    Console.WriteLine(driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]/div/div/ul/li/div[2]/div/div")).Text);
+                    Console.WriteLine();
+                }
             }
             catch { }
 
-            if(exist)
+            driver.Close();
+
+            //Refresh
+            if(!exist)
             {
                 Console.WriteLine("Refresh Y / N Exit");
                 string refresh = "";
                 refresh = Console.ReadLine();
+                Console.Clear();
                 if(refresh.ToLower() == "y")
                 {
                     GetSpectralLibrary(url);
                 }
             }
-
         }
     }
 }

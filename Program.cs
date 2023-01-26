@@ -3,16 +3,13 @@ namespace SeleniumTest
 {
     class Program
     {
-        public static void Main(string[]argv)
+        public static void Main(string[] argv)
         {
             SeleniumTest Prosit = new SeleniumTest();
-
-            
 
             string opc = "";
             while(opc != "3")
             {
-                Prosit.OpenDriver();
                 Console.WriteLine("1. SetSpectralLibrary 2.GetSpectralLibrary 3.Exit");
                 opc = Console.ReadLine();
                 switch(opc)
@@ -21,7 +18,7 @@ namespace SeleniumTest
                         Prosit.SetSpectralLibrary();
                         break;
                     case "2":
-                        Prosit.GetSpectralLibrary("");
+                        Prosit.GetSpectralLibrary("None");
                         break;
                     default:
                         Console.Clear();
@@ -29,7 +26,6 @@ namespace SeleniumTest
                 }
                 if (opc == "3")
                     break;
-                Prosit.CloseDriver();
             }
 
         }
