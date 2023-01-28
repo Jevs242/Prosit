@@ -132,15 +132,11 @@ namespace SeleniumTest
             string path = $@"{VisualStudioProvider.TryGetSolutionDirectoryInfo()}\token\token.txt";
             if (!File.Exists(path))
             {
-                Thread.Sleep(1000);
-                File.Create(path);
-                using (var sw = new StreamWriter(path, true))
-                {
-                    sw.WriteLine($"{url}" + " | " + localDate + " | " + name);
-                    sw.Close();
-                }
+                var tokenFile = File.Create(path);
+                tokenFile.Close();
             }
-            else if (File.Exists(path))
+
+            if (File.Exists(path))
             {
                 Thread.Sleep(1000);
                 using (var sw = new StreamWriter(path, true))
