@@ -1,38 +1,48 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
+using OpenQA.Selenium.Remote;
+using System;
+using System.IO;
 using System.Security.Policy;
+using System.Windows.Forms.VisualStyles;
+using System.Xml.Linq;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
 using static System.Windows.Forms.Design.AxImporter;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace SeleniumTest
 {
     class SeleniumTest
     {
-        IWebDriver driver;
-        EdgeDriverService service;
-        EdgeOptions option = new EdgeOptions();
-        string path;
+        IWebDriver? driver { get; set; } 
+        public string? path { get; set; }
+        public string? name { get; set; }
+        public string? url { get; set; }
+        
 
         public void OpenDriver()
         {
-            service = EdgeDriverService.CreateDefaultService();
+            //Services
+            EdgeDriverService service = EdgeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
-            //Hide Edge
+            //Options
+            EdgeOptions option = new EdgeOptions();
             option.AddArgument("--window-position=-32000,-32000");
-            path = System.AppDomain.CurrentDomain.BaseDirectory + "data\\";
-            Directory.CreateDirectory(path);
             option.AddUserProfilePreference("download.default_directory", path);
             option.AddUserProfilePreference("download.prompt_for_download", false);
             option.AddUserProfilePreference("disable-popup-blocking", "true");
+            //Open Driver
             driver = new EdgeDriver(service, option);
-            
-            
         }
 
         public void CloseDriver()
         {
             try
             {
-                driver.Close();
+                if(driver != null)
+                {
+                    driver.Quit();
+                }
             }
             catch
             {
@@ -40,37 +50,44 @@ namespace SeleniumTest
             }
         }
 
-        public void SetSpectralLibrary()
+    
+
+        public void SetSpectralLibrary(string documentPath )
         {
+            //Open Edge
             OpenDriver();
-            //Close Edge
+            //Close the Edge just in case it closes incorrectly
             AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseDriver();
+            //Get Name by the Path
+            string name = documentPath.Split('\\').Last().Split('.')[0];
             Console.WriteLine("Set Spectral Library");
 
-            //URL
+            if (driver == null)
+                return;
+
+            //Go to the Website
             driver.Url = "https://www.proteomicsdb.org/prosit/";
-
-            //Putting the Spectral Library Section
+            //Section : the Spectral Library
             driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[1]/div/div/div[3]/a")).Click();
-
             Thread.Sleep(1000);
-            //Section: Setting 
 
+            //Section: Setting 
+            
             //Button : Next
             driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[3]/div/div/div[4]/button")).Click();
-
             Thread.Sleep(1000);
+
             //Section: Upload Files 
+            
             // Button : Upload
             var uploadButton = driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[5]/div/div[3]/div/div[2]/div[1]/div[1]/input"));
-        
             // Button :Next
             IWebElement link = driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[5]/div/div[4]/div/button[2]"));
             uploadButton.Click();
             Thread.Sleep(1000);
 
             //Automatic Input
-            //SendKeys.SendWait(@"C:\Users\Jose\Downloads\mini.csv" + "{ENTER}");
+            SendKeys.SendWait($@"{documentPath}" + "{ENTER}");
 
             //Check if already upload the file
             while (link.GetAttribute("disabled") != null)
@@ -83,6 +100,7 @@ namespace SeleniumTest
                 link.Click();
             }
             Thread.Sleep(1000);
+  
             //Section : Model
 
             //Button : Prosit_2020_intensity_hcd
@@ -91,78 +109,65 @@ namespace SeleniumTest
             driver.FindElement(By.XPath($"//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[7]/div/div/div[2]/div/div/div[1]/div/div[{1}]/div")).Click();
             //Button : Next
             driver.FindElement(By.XPath("//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[7]/div/div/div[3]/button[2]")).Click();
+            Thread.Sleep(1000);
 
             //Section : Isobaric Label
-            Thread.Sleep(1000);
+            
             //Button : NIST .MSP Text Format of individual spectra (Skyline and MSPepSearch compatible)
             driver.FindElement(By.XPath($"//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[11]/div/div/div[2]/div/div[1]/div/div[{1}]/div")).Click();
             //Button : Next
             driver.FindElement(By.XPath("//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[11]/div/div/div[3]/button[2]")).Click();
-
             Thread.Sleep(2000);
             Console.WriteLine(driver.Url);
+            string url = driver.Url;
+
+            //Close Edge
+            CloseDriver();
+            //Change The location of data 
+            VisualStudioProvider.CreateDirectory(VisualStudioProvider.TryGetSolutionDirectoryInfo() + @"\data");
+
+            //Create a File to save the tokens
+            VisualStudioProvider.CreateDirectory(VisualStudioProvider.TryGetSolutionDirectoryInfo() + @"\token");
             DateTime localDate = DateTime.Now;
-            string path = @"token.txt";
+            string path = $@"{VisualStudioProvider.TryGetSolutionDirectoryInfo()}\token\token.txt";
             if (!File.Exists(path))
             {
                 File.Create(path);
-                TextWriter tw = new StreamWriter(path);
-                tw.WriteLine($"{driver.Url}" + " | " + localDate);
-                tw.Close();
+                using (var sw = new StreamWriter(path, true))
+                {
+                    sw.WriteLine($"{url}" + " | " + localDate + " | " + name);
+                    sw.Close();
+                }
             }
             else if (File.Exists(path))
             {
                 using (var sw = new StreamWriter(path, true))
                 {
-                    sw.WriteLine($"{driver.Url}" + " | " + localDate);
+                    sw.WriteLine($"{url}" + " | " + localDate + " | " + name);
+                    sw.Close();
                 }
             }
-            string url = driver.Url;
-            driver.Close();
 
-            GetSpectralLibrary(url);
+            this.url = url;
+            GetSpectralLibrary();
         }
 
-        public void GetSpectralLibrary(string Lurl)
+        public void GetSpectralLibrary()
         {
-            OpenDriver();
-            //Close Edge
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseDriver();
             Console.WriteLine("Get Spectral Library");
 
-            //URL
-            //"https://www.proteomicsdb.org/prosit/task/B3C2A1315FB848565E99E2DFD7BDCDC6" //Fail
-            //"https://www.proteomicsdb.org/prosit/task/DF5057395121C4D7BAD8E53A2040BD0D" //Successed
+            //Open Edge
+            OpenDriver();
+            //Close the Edge just in case it closes incorrectly
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseDriver();
 
-            string url = "";
+            if (driver == null)
+                return;
 
-            if(Lurl != "None")
-            {
-                url = Lurl;
-            }
-            else if(Lurl == "None")
-            {
-                int counter = 0;
-                foreach (string line in File.ReadLines(@"token.txt"))
-                {
-                    counter++;
-                    System.Console.WriteLine($"{counter}: {line}");
-                }
-                Console.WriteLine("What Token do you wanna check out?");
-                int opc = Convert.ToInt32(Console.ReadLine());
-                counter= 0;
-                foreach (string line in File.ReadLines(@"token.txt"))
-                {
-                    counter++;
-                    if(counter == opc)
-                        url = line;
-                }
-                url = url.Split(" | ")[0];
-            }
-
+            //Go to the website
             driver.Url = url;
-
             Thread.Sleep(1000);
+
             //Title
             Console.WriteLine(driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]")).Text);
 
@@ -174,15 +179,23 @@ namespace SeleniumTest
                 if(driver.FindElement(By.XPath("//html/body/div/div[2]/div[1]/div/div[4]/div/div/div[1]")).Text == "Your files are ready.")
                 {
                     exist = true;
-                    string download = "";
+                    string? download = "";
                     Console.WriteLine("It is Ready, Do you want to download? Y/N");
                     download = Console.ReadLine();
-                    if(download.ToLower() == "y")
+
+                    if (download == null)
+                        download = "";
+
+                    if (download.ToLower() == "y")
                     {
                         downloadButton.Click();
                         Console.WriteLine("Downloading in " + path);
                     }
-                    Console.Clear();
+
+
+                    while (!File.Exists(path + @"\download.zip"))
+                    {
+                    }
                 }
             }
             catch { }
@@ -202,20 +215,26 @@ namespace SeleniumTest
             }
             catch { }
 
-            driver.Close();
+            //Close Edge
+            CloseDriver();
 
             //Refresh
             if(!exist)
             {
                 Console.WriteLine("Refresh Y / N Exit");
-                string refresh = "";
+                string? refresh = "";
                 refresh = Console.ReadLine();
                 Console.Clear();
+
+                if (refresh == null)
+                    refresh = "";
+
                 if(refresh.ToLower() == "y")
                 {
-                    GetSpectralLibrary(url);
+                    GetSpectralLibrary();
                 }
             }
+
         }
     }
 }
