@@ -132,20 +132,7 @@ namespace SeleniumTest
     {
         public static DirectoryInfo TryGetSolutionDirectoryInfo()
         {
-            var directory = new DirectoryInfo(Directory.GetCurrentDirectory());
-            while (directory != null && !directory.GetFiles("*.sln").Any())
-            {
-                directory = directory.Parent;
-            }
-
-            if(directory != null)
-            {
-               return directory;
-            }
-            else
-            {
-                return new DirectoryInfo(Directory.GetCurrentDirectory());
-            }
+            return new DirectoryInfo(Directory.GetCurrentDirectory());
         }
 
         public static void CreateDirectory(string path)
