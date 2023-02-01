@@ -1,14 +1,8 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
-using OpenQA.Selenium.Remote;
-using System;
-using System.IO;
-using System.Security.Policy;
-using System.Windows.Forms.VisualStyles;
-using System.Xml.Linq;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using static System.Windows.Forms.Design.AxImporter;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+using WindowsInput.Native;
+using WindowsInput;
+
 
 namespace SeleniumTest
 {
@@ -84,11 +78,14 @@ namespace SeleniumTest
             // Button :Next
             IWebElement link = driver.FindElement(By.XPath(".//*[@id='app']//div[15]/div[1]/div/div[4]/div/div/div/div[2]/div/div[2]/div/div[5]/div/div[4]/div/button[2]"));
             uploadButton.Click();
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
 
             //Automatic Input
-            SendKeys.SendWait($@"{documentPath}" + "{ENTER}");
-
+            InputSimulator sim = new();
+            sim.Keyboard.TextEntry($@"{documentPath}");
+            sim.Keyboard.KeyPress(VirtualKeyCode.RETURN);
+            //SendKeys.SendWait();
+            Console.WriteLine("Upload...");
             //Check if already upload the file
             while (link.GetAttribute("disabled") != null)
             {
@@ -97,6 +94,7 @@ namespace SeleniumTest
 
             if (link.GetAttribute("disabled") == null)
             {
+                Console.WriteLine("Uploaded");
                 link.Click();
             }
             Thread.Sleep(1000);

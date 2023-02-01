@@ -1,7 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using System.IO;
-using System.Security.Policy;
-using System.Xml.Linq;
 
 namespace SeleniumTest
 {
@@ -10,7 +7,7 @@ namespace SeleniumTest
         [STAThread]
         public static void Main()
         {
-            SeleniumTest Prosit = new SeleniumTest();
+            SeleniumTest Prosit = new();
 
             string? opc = "";
             while(opc != "3")
